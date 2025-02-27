@@ -76,6 +76,18 @@ type (
 		Data       UserLoginResponse `json:"data"`
 	}
 
+	ResponseCurrentUser struct {
+		RequestID  string    `json:"request_id"`
+		RequestURL string    `json:"request_url"`
+		StatusCode int       `json:"status_code"`
+		Status     string    `json:"status"`
+		Message    string    `json:"message"`
+		Timestamp  time.Time `json:"timestamp"`
+		Latency    string    `json:"latency"`
+		App        string    `json:"app"`
+		Data       User      `json:"data"`
+	}
+
 	Pagination struct {
 		Links struct {
 			First    string `json:"first"`
@@ -156,6 +168,27 @@ func (q *ServiceSadia) Login(ctx context.Context, login, password string) (*Resp
 		return nil, err
 	}
 	if statusCode != fiber.StatusCreated {
+		return nil, errors.New(response.Message)
+	}
+	return &response, nil
+}
+
+func (q *ServiceSadia) FindCurrentUser(ctx context.Context, jwt string) (*ResponseCurrentUser, error) {
+	ctxt := "ServiceSadia-FindCurrentUser"
+	_, statusCode, respBody, err := q.hitEndpoint(ctx, "/account/me/about", fiber.MethodGet, nil, jwt)
+	if err != nil {
+		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrHitEndpoint")
+		return nil, err
+	}
+	if !json.Valid(respBody) {
+		return nil, errInvalidJSON
+	}
+	var response ResponseCurrentUser
+	if err = json.Unmarshal(respBody, &response); err != nil {
+		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrUnmarshal")
+		return nil, err
+	}
+	if statusCode != fiber.StatusOK {
 		return nil, errors.New(response.Message)
 	}
 	return &response, nil

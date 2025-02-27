@@ -120,9 +120,20 @@ func (q *accountHTTPHandler) aboutCurrentUser(c *fiber.Ctx) error {
 	if isAuthenticated, ok := session.Get(models.IsAuthenticated).(bool); !ok || !isAuthenticated {
 		return c.Redirect("/account/login")
 	}
-	currentUser, ok := session.Get(models.CurrentUser).(serviceSadia.User)
+	jwt, ok := session.Get(models.CurrentJwt).(string)
 	if !ok {
 		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+	response, err := q.serviceSadia.FindCurrentUser(ctx, jwt)
+	if err != nil {
+		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrFindCurrentUser")
+		return c.SendString(err.Error())
+	}
+	currentUser := response.Data
+	session.Set(models.CurrentUser, currentUser)
+	if err = session.Save(); err != nil {
+		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrSave")
+		return c.SendString(err.Error())
 	}
 	return c.Render("account/me/about", fiber.Map{
 		"is_authenticated": true,
