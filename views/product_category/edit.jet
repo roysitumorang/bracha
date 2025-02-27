@@ -1,0 +1,14 @@
+{{ include "../partials/header" }}
+
+<h1><a href="/product_category">Product Category</a> > Edit #{{ id }}</h1>
+{{ if message }}<p>{{ message }}</p>{{ end }}
+<form method="POST" action="/product_category/{{ id }}">
+    <p>Name <input type="text" name="name" value="{{ name }}" /></p>
+    <p>Slug <input type="test" name="slug" value="{{ slug }}" /></p>
+    <p>
+        <button type="submit">Submit</button>
+        <button type="reset">Reset</button>
+    </p>
+</form>
+
+{{ include "../partials/footer" }}

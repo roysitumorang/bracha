@@ -5,3 +5,10 @@
 </head>
 <body>
 <h2>Header</h2>
+{{ if is_authenticated }}
+<p>
+    <a href="/product_category">Product Category</a>
+    <a href="/account/me/about">My Profile</a>
+    <p><a href="/account/logout">Logout</a></p>
+</p>
+{{ end }}

@@ -1,0 +1,35 @@
+{{ include "../partials/header" }}
+
+<h1>Product Category</h1>
+{{ if message }}<p>{{ message }}</p>{{ end }}
+<table>
+    <thead>
+        <tr>
+            <td>ID</td>
+            <td>Name</td>
+            <td>Slug</td>
+            <td>#</td>
+        </tr>
+    </thead>
+    <tbody>
+        {{ range _, item := response.Data.Rows }}
+        <tr>
+            <td>{{ item.ID }}</td>
+            <td>{{ item.Name }}</td>
+            <td>{{ item.Slug }}</td>
+            <td><a href="/product_category/{{ item.ID }}/edit">Edit</a></td>
+        </tr>
+        {{ end }}
+    </tbody>
+</table>
+<p><a href="/product_category/new">Create</a></p>
+{{ if response.Data.Pagination.Info.Pages > 0 }}
+    <p>
+        <a href="{{ response.Data.Pagination.Links.First }}">First</a>
+        <a href="{{ response.Data.Pagination.Links.Previous }}">Previous</a>
+        <a href="{{ response.Data.Pagination.Links.Current }}">Current</a>
+        <a href="{{ response.Data.Pagination.Links.Next }}">Next</a>
+    </p>
+{{ end }}
+
+{{ include "../partials/footer" }}

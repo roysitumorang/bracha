@@ -65,8 +65,9 @@ func (q *accountHTTPHandler) login(c *fiber.Ctx) error {
 		return c.Redirect("/account/me/about")
 	}
 	return c.Render("account/login", fiber.Map{
-		"message": "",
-		"login":   "",
+		"is_authenticated": false,
+		"message":          "",
+		"login":            "",
 	})
 }
 
@@ -85,14 +86,16 @@ func (q *accountHTTPHandler) doLogin(c *fiber.Ctx) error {
 	if err != nil {
 		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrLogin")
 		return c.Render("account/login", fiber.Map{
-			"message": err.Error(),
-			"login":   c.FormValue("login"),
+			"is_authenticated": false,
+			"message":          err.Error(),
+			"login":            c.FormValue("login"),
 		})
 	}
 	if response.StatusCode != fiber.StatusCreated {
 		return c.Render("account/login", fiber.Map{
-			"message": response.Message,
-			"login":   c.FormValue("login"),
+			"is_authenticated": false,
+			"message":          response.Message,
+			"login":            c.FormValue("login"),
 		})
 	}
 	session.Set(models.IsAuthenticated, true)
@@ -122,6 +125,7 @@ func (q *accountHTTPHandler) aboutCurrentUser(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
 	return c.Render("account/me/about", fiber.Map{
-		"currentUser": currentUser,
+		"is_authenticated": true,
+		"currentUser":      currentUser,
 	})
 }
