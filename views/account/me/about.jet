@@ -1,0 +1,7 @@
+{{ include "../../partials/header" }}
+
+<h1> Welcome {{ currentUser.Name }}{{ if currentUser.Email }} / {{ currentUser.Email }}{{end}}</h1>
+
+<p><a href="/account/logout">Logout</a></p>
+
+{{ include "../../partials/footer" }}
