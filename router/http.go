@@ -28,6 +28,7 @@ import (
 	"github.com/roysitumorang/bracha/helper"
 	"github.com/roysitumorang/bracha/middleware"
 	accountPresenter "github.com/roysitumorang/bracha/modules/account/presenter"
+	productPresenter "github.com/roysitumorang/bracha/modules/product/presenter"
 	productCategoryPresenter "github.com/roysitumorang/bracha/modules/product_category/presenter"
 	fiberSwagger "github.com/swaggo/fiber-swagger"
 	"go.uber.org/zap"
@@ -102,6 +103,7 @@ func (q *Service) HTTPServerMain(ctx context.Context) error {
 		})
 	accountPresenter.New(sessionStore, q.ServiceSadia).Mount(app.Group("/account"))
 	productCategoryPresenter.New(sessionStore, q.ServiceSadia).Mount(app.Group("/product_category"))
+	productPresenter.New(sessionStore, q.ServiceSadia).Mount(app.Group("/product"))
 	app.Use(func(c *fiber.Ctx) error {
 		return helper.NewResponse(fiber.StatusNotFound).WriteResponse(c)
 	})

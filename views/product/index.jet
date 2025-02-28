@@ -1,0 +1,43 @@
+{{ include "../partials/header" }}
+
+<h1>Product</h1>
+{{ if message }}<p>{{ message }}</p>{{ end }}
+<table>
+    <thead>
+        <tr>
+            <td>ID</td>
+            <td>Name</td>
+            <td>Category</td>
+            <td>Slug</td>
+            <td>UOM</td>
+            <td>Stock</td>
+            <td>Price</td>
+            <td>#</td>
+        </tr>
+    </thead>
+    <tbody>
+        {{ range _, item := response.Data.Rows }}
+        <tr>
+            <td>{{ item.ID }}</td>
+            <td>{{ item.Name }}</td>
+            <td>{{ if item.CategoryID }}{{ item.CategoryID }}{{ else }}-{{ end}}</td>
+            <td>{{ item.Slug }}</td>
+            <td>{{ item.UOM }}</td>
+            <td>{{ item.Stock }}</td>
+            <td>{{ item.Price }}</td>
+            <td><a href="/product/{{ item.ID }}/edit">Edit</a></td>
+        </tr>
+        {{ end }}
+    </tbody>
+</table>
+<p><a href="/product/new">Create</a></p>
+{{ if response.Data.Pagination.Info.Pages > 0 }}
+    <p>
+        <a href="{{ response.Data.Pagination.Links.First }}">First</a>
+        <a href="{{ response.Data.Pagination.Links.Previous }}">Previous</a>
+        <a href="{{ response.Data.Pagination.Links.Current }}">Current</a>
+        <a href="{{ response.Data.Pagination.Links.Next }}">Next</a>
+    </p>
+{{ end }}
+
+{{ include "../partials/footer" }}

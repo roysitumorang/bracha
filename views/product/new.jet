@@ -1,0 +1,26 @@
+{{ include "../partials/header" }}
+
+<h1><a href="/product">Product</a> > New</h1>
+{{ if message }}<p>{{ message }}</p>{{ end }}
+<form method="POST" action="/product">
+    <p>
+        Category
+        <select name="category_id">
+            <option value="">-</option>
+            {{ range _, item := productCategories.Data.Rows }}
+                <option value="{{ item.ID }}"{{ if item.ID == categoryID }} selected{{ end }}>{{ item.Name }}</option>
+            {{ end }}
+        </select>
+    </p>
+    <p>Name <input type="text" name="name" value="{{ name }}" /></p>
+    <p>Slug <input type="test" name="slug" value="{{ slug }}" /></p>
+    <p>UOM <input type="test" name="uom" value="{{ uom }}" /></p>
+    <p>Stock <input type="number" name="stock" value="{{ stock }}" /></p>
+    <p>Price <input type="number" name="price" value="{{ price }}" /></p>
+    <p>
+        <button type="submit">Submit</button>
+        <button type="reset">Reset</button>
+    </p>
+</form>
+
+{{ include "../partials/footer" }}

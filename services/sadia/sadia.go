@@ -136,6 +136,45 @@ type (
 		App        string          `json:"app"`
 		Data       ProductCategory `json:"data"`
 	}
+
+	Product struct {
+		ID         string  `json:"id"`
+		CategoryID *string `json:"category_id"`
+		Name       string  `json:"name"`
+		Slug       string  `json:"slug"`
+		UOM        string  `json:"uom"`
+		Stock      int64   `json:"stock"`
+		Price      int64   `json:"price"`
+	}
+
+	ProductsPagination struct {
+		Pagination Pagination `json:"pagination"`
+		Rows       []Product  `json:"rows"`
+	}
+
+	ResponseProductsPagination struct {
+		RequestID  string             `json:"request_id"`
+		RequestURL string             `json:"request_url"`
+		StatusCode int                `json:"status_code"`
+		Status     string             `json:"status"`
+		Message    string             `json:"message"`
+		Timestamp  time.Time          `json:"timestamp"`
+		Latency    string             `json:"latency"`
+		App        string             `json:"app"`
+		Data       ProductsPagination `json:"data"`
+	}
+
+	ResponseProduct struct {
+		RequestID  string    `json:"request_id"`
+		RequestURL string    `json:"request_url"`
+		StatusCode int       `json:"status_code"`
+		Status     string    `json:"status"`
+		Message    string    `json:"message"`
+		Timestamp  time.Time `json:"timestamp"`
+		Latency    string    `json:"latency"`
+		App        string    `json:"app"`
+		Data       Product   `json:"data"`
+	}
 )
 
 var (
@@ -282,6 +321,116 @@ func (q *ServiceSadia) UpdateProductCategory(ctx context.Context, jwt, productCa
 		return nil, errInvalidJSON
 	}
 	var response ResponseProductCategory
+	if err = json.Unmarshal(respBody, &response); err != nil {
+		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrUnmarshal")
+		return nil, err
+	}
+	if statusCode != fiber.StatusOK {
+		return nil, errors.New(response.Message)
+	}
+	return &response, nil
+}
+
+func (q *ServiceSadia) FindProducts(ctx context.Context, jwt string, urlValues url.Values) (*ResponseProductsPagination, error) {
+	ctxt := "ServiceSadia-FindProducts"
+	_, statusCode, respBody, err := q.hitEndpoint(ctx, "/product", fiber.MethodGet, urlValues, jwt)
+	if err != nil {
+		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrHitEndpoint")
+		return nil, err
+	}
+	if !json.Valid(respBody) {
+		return nil, errInvalidJSON
+	}
+	var response ResponseProductsPagination
+	if err = json.Unmarshal(respBody, &response); err != nil {
+		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrUnmarshal")
+		return nil, err
+	}
+	if statusCode != fiber.StatusOK {
+		return nil, errors.New(response.Message)
+	}
+	return &response, nil
+}
+
+func (q *ServiceSadia) CreateProduct(ctx context.Context, jwt, productCategoryID, name, slug, uom string, stock, price int64) (*ResponseProduct, error) {
+	ctxt := "ServiceSadia-CreateProduct"
+	request := Product{
+		Name:  name,
+		Slug:  slug,
+		UOM:   uom,
+		Stock: stock,
+		Price: price,
+	}
+	if productCategoryID != "" {
+		request.CategoryID = &productCategoryID
+	}
+	_, statusCode, respBody, err := q.hitEndpoint(ctx, "/product", fiber.MethodPost, nil, jwt, request)
+	if err != nil {
+		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrHitEndpoint")
+		return nil, err
+	}
+	if !json.Valid(respBody) {
+		return nil, errInvalidJSON
+	}
+	var response ResponseProduct
+	if err = json.Unmarshal(respBody, &response); err != nil {
+		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrUnmarshal")
+		return nil, err
+	}
+	if statusCode != fiber.StatusCreated {
+		return nil, errors.New(response.Message)
+	}
+	return &response, nil
+}
+
+func (q *ServiceSadia) FindProduct(ctx context.Context, jwt, productID string) (*ResponseProduct, error) {
+	ctxt := "ServiceSadia-FindProduct"
+	var builder strings.Builder
+	_, _ = builder.WriteString("/product/")
+	_, _ = builder.WriteString(productID)
+	_, statusCode, respBody, err := q.hitEndpoint(ctx, builder.String(), fiber.MethodGet, nil, jwt)
+	if err != nil {
+		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrHitEndpoint")
+		return nil, err
+	}
+	if !json.Valid(respBody) {
+		return nil, errInvalidJSON
+	}
+	var response ResponseProduct
+	if err = json.Unmarshal(respBody, &response); err != nil {
+		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrUnmarshal")
+		return nil, err
+	}
+	if statusCode != fiber.StatusOK {
+		return nil, errors.New(response.Message)
+	}
+	return &response, nil
+}
+
+func (q *ServiceSadia) UpdateProduct(ctx context.Context, jwt, productID, productCategoryID, name, slug, uom string, stock, price int64) (*ResponseProduct, error) {
+	ctxt := "ServiceSadia-UpdateProduct"
+	var builder strings.Builder
+	_, _ = builder.WriteString("/product/")
+	_, _ = builder.WriteString(productID)
+	request := Product{
+		Name:  name,
+		Slug:  slug,
+		UOM:   uom,
+		Stock: stock,
+		Price: price,
+	}
+	if productCategoryID != "" {
+		request.CategoryID = &productCategoryID
+	}
+	_, statusCode, respBody, err := q.hitEndpoint(ctx, builder.String(), fiber.MethodPut, nil, jwt, request)
+	if err != nil {
+		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrHitEndpoint")
+		return nil, err
+	}
+	if !json.Valid(respBody) {
+		return nil, errInvalidJSON
+	}
+	var response ResponseProduct
 	if err = json.Unmarshal(respBody, &response); err != nil {
 		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrUnmarshal")
 		return nil, err

@@ -8,6 +8,7 @@
 {{ if is_authenticated }}
 <p>
     <a href="/product_category">Product Category</a>
+    <a href="/product">Product</a>
     <a href="/account/me/about">My Profile</a>
     <p><a href="/account/logout">Logout</a></p>
 </p>
