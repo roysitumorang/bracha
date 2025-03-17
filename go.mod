@@ -43,7 +43,7 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/swaggo/files v1.0.1 // indirect
-	github.com/valkey-io/valkey-go v1.0.55 // indirect
+	github.com/valkey-io/valkey-go v1.0.56 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
