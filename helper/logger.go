@@ -2,12 +2,10 @@ package helper
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"runtime"
 	"sync"
 
-	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -99,10 +97,6 @@ func Capture(ctx context.Context, level zapcore.Level, err error, context, scope
 	case zap.WarnLevel:
 		entry.Warn(err.Error())
 	case zap.ErrorLevel:
-		// ignoring pgx.ErrNoRows
-		if errors.Is(err, pgx.ErrNoRows) {
-			return
-		}
 		var name string
 		pc, file, line, _ := runtime.Caller(1)
 		if fn := runtime.FuncForPC(pc); fn != nil {

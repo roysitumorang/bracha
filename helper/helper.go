@@ -14,9 +14,8 @@ import (
 )
 
 const (
-	numbers             = "0123456789"
-	base58alphabets     = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-	lowerCasedAlphabets = "123456789abcdefghijkmnopqrstuvwxyz"
+	numbers         = "0123456789"
+	base58alphabets = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 )
 
 var (
