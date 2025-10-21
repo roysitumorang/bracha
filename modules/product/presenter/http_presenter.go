@@ -1,8 +1,8 @@
 package presenter
 
 import (
+	"errors"
 	"net/url"
-	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
@@ -53,12 +53,12 @@ func (q *productHTTPHandler) index(c *fiber.Ctx) error {
 	if !currentUserOk || !jwtOk {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
-	originalURL, err := url.ParseRequestURI(c.OriginalURL())
+	originalURL, err := url.ParseRequestURI(helper.ByteSlice2String(c.Context().URI().FullURI()))
 	if err != nil {
 		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrParseRequestURI")
 		return c.SendString(err.Error())
 	}
-	response, err := q.serviceSadia.FindProducts(ctx, jwt, originalURL.Query())
+	response, err := q.serviceSadia.FindProducts(ctx, jwt, originalURL)
 	if err != nil {
 		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrFindProducts")
 		return c.SendString(err.Error())
@@ -70,6 +70,7 @@ func (q *productHTTPHandler) index(c *fiber.Ctx) error {
 		"is_authenticated": true,
 		"currentUser":      currentUser,
 		"message":          "",
+		"q":                c.Query("q"),
 		"response":         response,
 	})
 }
@@ -90,6 +91,7 @@ func (q *productHTTPHandler) new(c *fiber.Ctx) error {
 	if !currentUserOk || !jwtOk {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
+	var product serviceSadia.Product
 	productCategories, err := q.serviceSadia.FindProductCategories(ctx, jwt, nil)
 	if err != nil {
 		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrFindProductCategories")
@@ -101,11 +103,7 @@ func (q *productHTTPHandler) new(c *fiber.Ctx) error {
 		"message":           "",
 		"productCategories": productCategories,
 		"categoryID":        "",
-		"name":              "",
-		"slug":              "",
-		"uom":               "",
-		"stock":             0,
-		"price":             0,
+		"product":           product,
 	})
 }
 
@@ -125,54 +123,43 @@ func (q *productHTTPHandler) create(c *fiber.Ctx) error {
 	if !currentUserOk || !jwtOk {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
+	var product serviceSadia.Product
+	if err := c.BodyParser(&product); err != nil {
+		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrBodyParser")
+		return c.SendString(err.Error())
+	}
+	var categoryID string
+	if product.CategoryID != nil {
+		categoryID = *product.CategoryID
+		if *product.CategoryID == "" {
+			product.CategoryID = nil
+		}
+	}
 	productCategories, err := q.serviceSadia.FindProductCategories(ctx, jwt, nil)
 	if err != nil {
 		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrFindProductCategories")
 		return c.SendString(err.Error())
 	}
-	stock, err := strconv.ParseInt(c.FormValue("stock"), 10, 64)
-	if err != nil || stock < 0 {
-		return c.Render("product/new", fiber.Map{
-			"is_authenticated":  true,
-			"currentUser":       currentUser,
-			"message":           "stock: requires a positive integer",
-			"productCategories": productCategories,
-			"categoryID":        c.FormValue("category_id"),
-			"name":              c.FormValue("name"),
-			"slug":              c.FormValue("slug"),
-			"uom":               c.FormValue("uom"),
-			"stock":             c.FormValue("stock"),
-			"price":             c.FormValue("price"),
-		})
+	if product.Stock < 0 {
+		err = errors.New("stock: requires a positive integer")
+	} else if product.PurchasePrice < 0 {
+		err = errors.New("purchase_price: requires a positive integer")
+	} else if product.SellingPrice < 0 {
+		err = errors.New("selling_price: requires a positive integer")
 	}
-	price, err := strconv.ParseInt(c.FormValue("price"), 10, 64)
-	if err != nil || stock < 0 {
-		return c.Render("product/new", fiber.Map{
-			"is_authenticated":  true,
-			"currentUser":       currentUser,
-			"message":           "price: requires a positive integer",
-			"productCategories": productCategories,
-			"categoryID":        c.FormValue("category_id"),
-			"name":              c.FormValue("name"),
-			"slug":              c.FormValue("slug"),
-			"uom":               c.FormValue("uom"),
-			"stock":             c.FormValue("stock"),
-			"price":             c.FormValue("price"),
-		})
+	if err == nil {
+		if _, err = q.serviceSadia.CreateProduct(ctx, jwt, product); err != nil {
+			helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrCreateProduct")
+		}
 	}
-	if _, err = q.serviceSadia.CreateProduct(ctx, jwt, c.FormValue("category_id"), c.FormValue("name"), c.FormValue("slug"), c.FormValue("uom"), stock, price); err != nil {
-		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrCreateProduct")
+	if err != nil {
 		return c.Render("product/new", fiber.Map{
 			"is_authenticated":  true,
 			"currentUser":       currentUser,
 			"message":           err.Error(),
 			"productCategories": productCategories,
-			"categoryID":        c.FormValue("category_id"),
-			"name":              c.FormValue("name"),
-			"slug":              c.FormValue("slug"),
-			"uom":               c.FormValue("uom"),
-			"stock":             c.FormValue("stock"),
-			"price":             c.FormValue("price"),
+			"categoryID":        categoryID,
+			"product":           product,
 		})
 	}
 	return c.Redirect("/product")
@@ -202,27 +189,23 @@ func (q *productHTTPHandler) edit(c *fiber.Ctx) error {
 	if response == nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
+	product := response.Data
+	var categoryID string
+	if product.CategoryID != nil {
+		categoryID = *product.CategoryID
+	}
 	productCategories, err := q.serviceSadia.FindProductCategories(ctx, jwt, nil)
 	if err != nil {
 		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrFindProductCategories")
 		return c.SendString(err.Error())
-	}
-	var categoryID string
-	if response.Data.CategoryID != nil {
-		categoryID = *response.Data.CategoryID
 	}
 	return c.Render("product/edit", fiber.Map{
 		"is_authenticated":  true,
 		"currentUser":       currentUser,
 		"message":           "",
 		"productCategories": productCategories,
-		"id":                response.Data.ID,
 		"categoryID":        categoryID,
-		"name":              response.Data.Name,
-		"slug":              response.Data.Slug,
-		"uom":               response.Data.UOM,
-		"stock":             response.Data.Stock,
-		"price":             response.Data.Price,
+		"product":           product,
 	})
 }
 
@@ -242,57 +225,52 @@ func (q *productHTTPHandler) update(c *fiber.Ctx) error {
 	if !currentUserOk || !jwtOk {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
+	response, err := q.serviceSadia.FindProduct(ctx, jwt, c.Params("id"))
+	if err != nil {
+		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrFindProduct")
+		return c.SendString(err.Error())
+	}
+	if response == nil {
+		return c.SendStatus(fiber.StatusNotFound)
+	}
+	var product serviceSadia.Product
+	if err := c.BodyParser(&product); err != nil {
+		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrBodyParser")
+		return c.SendString(err.Error())
+	}
+	product.ID = response.Data.ID
+	var categoryID string
+	if product.CategoryID != nil {
+		categoryID = *product.CategoryID
+		if *product.CategoryID == "" {
+			product.CategoryID = nil
+		}
+	}
 	productCategories, err := q.serviceSadia.FindProductCategories(ctx, jwt, nil)
 	if err != nil {
 		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrFindProductCategories")
 		return c.SendString(err.Error())
 	}
-	stock, err := strconv.ParseInt(c.FormValue("stock"), 10, 64)
-	if err != nil || stock < 0 {
-		return c.Render("product/edit", fiber.Map{
-			"is_authenticated":  true,
-			"currentUser":       currentUser,
-			"message":           "stock: requires a positive integer",
-			"productCategories": productCategories,
-			"id":                c.Params("id"),
-			"categoryID":        c.FormValue("category_id"),
-			"name":              c.FormValue("name"),
-			"slug":              c.FormValue("slug"),
-			"uom":               c.FormValue("uom"),
-			"stock":             c.FormValue("stock"),
-			"price":             c.FormValue("price"),
-		})
+	if product.Stock < 0 {
+		err = errors.New("stock: requires a positive integer")
+	} else if product.PurchasePrice < 0 {
+		err = errors.New("purchase_price: requires a positive integer")
+	} else if product.SellingPrice < 0 {
+		err = errors.New("selling_price: requires a positive integer")
 	}
-	price, err := strconv.ParseInt(c.FormValue("price"), 10, 64)
-	if err != nil || stock < 0 {
-		return c.Render("product/edit", fiber.Map{
-			"is_authenticated":  true,
-			"currentUser":       currentUser,
-			"message":           "price: requires a positive integer",
-			"productCategories": productCategories,
-			"id":                c.Params("id"),
-			"categoryID":        c.FormValue("category_id"),
-			"name":              c.FormValue("name"),
-			"slug":              c.FormValue("slug"),
-			"uom":               c.FormValue("uom"),
-			"stock":             c.FormValue("stock"),
-			"price":             c.FormValue("price"),
-		})
+	if err == nil {
+		if _, err = q.serviceSadia.UpdateProduct(ctx, jwt, product.ID, product); err != nil {
+			helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrUpdateProduct")
+		}
 	}
-	if _, err := q.serviceSadia.UpdateProduct(ctx, jwt, c.Params("id"), c.FormValue("category_id"), c.FormValue("name"), c.FormValue("slug"), c.FormValue("uom"), stock, price); err != nil {
-		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrUpdateProduct")
+	if err != nil {
 		return c.Render("product/edit", fiber.Map{
 			"is_authenticated":  true,
 			"currentUser":       currentUser,
 			"message":           err.Error(),
 			"productCategories": productCategories,
-			"id":                c.Params("id"),
-			"categoryID":        c.FormValue("category_id"),
-			"name":              c.FormValue("name"),
-			"slug":              c.FormValue("slug"),
-			"uom":               c.FormValue("uom"),
-			"stock":             c.FormValue("stock"),
-			"price":             c.FormValue("price"),
+			"categoryID":        categoryID,
+			"product":           product,
 		})
 	}
 	return c.Redirect("/product")

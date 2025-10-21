@@ -103,9 +103,10 @@ type (
 	}
 
 	ProductCategory struct {
-		ID   string `json:"id"`
-		Name string `json:"name"`
-		Slug string `json:"slug"`
+		RowNo uint64 `json:"row_no,omitempty"`
+		ID    string `json:"id"`
+		Name  string `json:"name"`
+		Slug  string `json:"slug"`
 	}
 
 	ProductCategoriesPagination struct {
@@ -138,13 +139,16 @@ type (
 	}
 
 	Product struct {
-		ID         string  `json:"id"`
-		CategoryID *string `json:"category_id"`
-		Name       string  `json:"name"`
-		Slug       string  `json:"slug"`
-		UOM        string  `json:"uom"`
-		Stock      int64   `json:"stock"`
-		Price      int64   `json:"price"`
+		RowNo         uint64  `json:"row_no,omitempty"`
+		ID            string  `json:"id" form:"id"`
+		CategoryID    *string `json:"category_id" form:"category_id"`
+		Code          string  `json:"code" form:"code"`
+		Name          string  `json:"name" form:"name"`
+		Slug          string  `json:"slug" form:"slug"`
+		UOM           string  `json:"uom" form:"uom"`
+		Stock         int64   `json:"stock" form:"stock"`
+		PurchasePrice int64   `json:"purchase_price" form:"purchase_price"`
+		SellingPrice  int64   `json:"selling_price" form:"selling_price"`
 	}
 
 	ProductsPagination struct {
@@ -331,9 +335,9 @@ func (q *ServiceSadia) UpdateProductCategory(ctx context.Context, jwt, productCa
 	return &response, nil
 }
 
-func (q *ServiceSadia) FindProducts(ctx context.Context, jwt string, urlValues url.Values) (*ResponseProductsPagination, error) {
+func (q *ServiceSadia) FindProducts(ctx context.Context, jwt string, originalURL *url.URL) (*ResponseProductsPagination, error) {
 	ctxt := "ServiceSadia-FindProducts"
-	_, statusCode, respBody, err := q.hitEndpoint(ctx, "/product", fiber.MethodGet, urlValues, jwt)
+	_, statusCode, respBody, err := q.hitEndpoint(ctx, "/product", fiber.MethodGet, originalURL.Query(), jwt)
 	if err != nil {
 		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrHitEndpoint")
 		return nil, err
@@ -349,21 +353,25 @@ func (q *ServiceSadia) FindProducts(ctx context.Context, jwt string, urlValues u
 	if statusCode != fiber.StatusOK {
 		return nil, errors.New(response.Message)
 	}
+	var builder strings.Builder
+	_, _ = builder.WriteString(q.baseURL.String())
+	_, _ = builder.WriteString("/product")
+	targetBaseURL := builder.String()
+	builder.Reset()
+	_, _ = builder.WriteString(originalURL.Scheme)
+	_, _ = builder.WriteString("://")
+	_, _ = builder.WriteString(originalURL.Host)
+	_, _ = builder.WriteString(originalURL.Path)
+	sourceBaseURL := builder.String()
+	response.Data.Pagination.Links.First = strings.ReplaceAll(response.Data.Pagination.Links.First, targetBaseURL, sourceBaseURL)
+	response.Data.Pagination.Links.Current = strings.ReplaceAll(response.Data.Pagination.Links.Current, targetBaseURL, sourceBaseURL)
+	response.Data.Pagination.Links.Previous = strings.ReplaceAll(response.Data.Pagination.Links.Previous, targetBaseURL, sourceBaseURL)
+	response.Data.Pagination.Links.Next = strings.ReplaceAll(response.Data.Pagination.Links.Next, targetBaseURL, sourceBaseURL)
 	return &response, nil
 }
 
-func (q *ServiceSadia) CreateProduct(ctx context.Context, jwt, productCategoryID, name, slug, uom string, stock, price int64) (*ResponseProduct, error) {
+func (q *ServiceSadia) CreateProduct(ctx context.Context, jwt string, request Product) (*ResponseProduct, error) {
 	ctxt := "ServiceSadia-CreateProduct"
-	request := Product{
-		Name:  name,
-		Slug:  slug,
-		UOM:   uom,
-		Stock: stock,
-		Price: price,
-	}
-	if productCategoryID != "" {
-		request.CategoryID = &productCategoryID
-	}
 	_, statusCode, respBody, err := q.hitEndpoint(ctx, "/product", fiber.MethodPost, nil, jwt, request)
 	if err != nil {
 		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrHitEndpoint")
@@ -407,21 +415,11 @@ func (q *ServiceSadia) FindProduct(ctx context.Context, jwt, productID string) (
 	return &response, nil
 }
 
-func (q *ServiceSadia) UpdateProduct(ctx context.Context, jwt, productID, productCategoryID, name, slug, uom string, stock, price int64) (*ResponseProduct, error) {
+func (q *ServiceSadia) UpdateProduct(ctx context.Context, jwt, productID string, request Product) (*ResponseProduct, error) {
 	ctxt := "ServiceSadia-UpdateProduct"
 	var builder strings.Builder
 	_, _ = builder.WriteString("/product/")
 	_, _ = builder.WriteString(productID)
-	request := Product{
-		Name:  name,
-		Slug:  slug,
-		UOM:   uom,
-		Stock: stock,
-		Price: price,
-	}
-	if productCategoryID != "" {
-		request.CategoryID = &productCategoryID
-	}
 	_, statusCode, respBody, err := q.hitEndpoint(ctx, builder.String(), fiber.MethodPut, nil, jwt, request)
 	if err != nil {
 		helper.Log(ctx, zap.ErrorLevel, err.Error(), ctxt, "ErrHitEndpoint")

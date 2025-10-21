@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"net/url"
 	"os"
 	"sync"
 	"time"
@@ -19,9 +20,10 @@ const (
 )
 
 var (
-	timeZone   *time.Location
-	env        string
-	InitHelper = sync.OnceValue(func() (err error) {
+	timeZone     *time.Location
+	env          string
+	sadiaBaseURL *url.URL
+	InitHelper   = sync.OnceValue(func() (err error) {
 		location, ok := os.LookupEnv("TIME_ZONE")
 		if !ok || location == "" {
 			return errors.New("env TIME_ZONE is required")
@@ -31,6 +33,13 @@ var (
 		}
 		if env, ok = os.LookupEnv("ENV"); !ok {
 			return errors.New("env ENV is required")
+		}
+		envSadiaBaseURL, ok := os.LookupEnv("SADIA_BASE_URL")
+		if !ok || envSadiaBaseURL == "" {
+			return errors.New("env SADIA_BASE_URL is required")
+		}
+		if sadiaBaseURL, err = url.Parse(envSadiaBaseURL); err != nil {
+			return
 		}
 		if env == "" {
 			env = "development"
@@ -49,6 +58,10 @@ func ByteSlice2String(bs []byte) string {
 
 func LoadTimeZone() *time.Location {
 	return timeZone
+}
+
+func GetSadiaBaseURL() *url.URL {
+	return sadiaBaseURL
 }
 
 func GetEnv() string {

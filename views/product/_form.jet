@@ -1,0 +1,35 @@
+<div class="col-12">
+    <label for="category_id" class="form-label">Category</label>
+    <select name="category_id" class="form-select" id="category_id">
+        <option value="">Choose...</option>
+        {{ range _, item := productCategories.Data.Rows }}
+            <option value="{{ item.ID }}"{{ if item.ID == categoryID }} selected{{ end }}>{{ item.Name }}</option>
+        {{ end }}
+    </select>
+</div>
+<div class="col-12">
+    <label for="name" class="form-label">Name</label>
+    <input type="text" name="name" value="{{ product.Name }}" class="form-control" id="name" placeholder="name" autocomplete="off" />
+</div>
+<div class="col-12">
+    <label for="slug" class="form-label">Slug <span class="text-body-secondary">(Optional)</span></label>
+    <input type="test" name="slug" value="{{ product.Slug }}" class="form-control" id="slug" placeholder="slug" autocomplete="off" />
+</div>
+<div class="col-12">
+    <label for="uom" class="form-label">UOM</label>
+    <input type="test" name="uom" value="{{ product.UOM }}" class="form-control" id="uom" placeholder="UOM" autocomplete="off" />
+</div>
+<div class="col-12">
+    <label for="stock" class="form-label">Stock</label>
+    <input type="number" name="stock" value="{{ product.Stock }}" class="form-control" id="stock" placeholder="stock" autocomplete="off" />
+</div>
+<div class="col-12">
+    <label for="purchase_price" class="form-label">Purchase Price</label>
+    <input type="number" name="purchase_price" value="{{ product.PurchasePrice }}" class="form-control" id="purchase_price" placeholder="purchase price" autocomplete="off" />
+</div>
+<div class="col-12">
+    <label for="selling_price" class="form-label">Selling Price</label>
+    <input type="number" name="selling_price" value="{{ product.SellingPrice }}" class="form-control" id="selling_price" placeholder="selling price" autocomplete="off" />
+</div>
+<button type="submit" class="btn btn-primary btn-lg">Submit</button>
+<button type="reset" class="btn btn-secondary btn-lg">Reset</button>
