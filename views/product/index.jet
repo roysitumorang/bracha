@@ -31,11 +31,12 @@
                 <th scope="col">Code</th>
                 <th scope="col">Name</th>
                 <th scope="col">Category</th>
-                <th scope="col">Slug</th>
                 <th scope="col">UOM</th>
-                <th scope="col">Stock</th>
-                <th scope="col">Purchase Price</th>
-                <th scope="col">Selling Price</th>
+                <th scope="col">Stock Type</th>
+                <th scope="col">Minimum / Current Stock</th>
+                <th scope="col">Purchase / Selling Price</th>
+                <th scope="col">Weight</th>
+                <th scope="col">Discount</th>
                 <th scope="col">#</th>
             </tr>
         </thead>
@@ -46,11 +47,12 @@
                 <td>{{ item.Code }}</td>
                 <td>{{ item.Name }}</td>
                 <td>{{ if item.CategoryID }}{{ item.CategoryID }}{{ else }}-{{ end }}</td>
-                <td>{{ item.Slug }}</td>
                 <td>{{ item.UOM }}</td>
-                <td>{{ item.Stock }}</td>
-                <td>{{ item.PurchasePrice }}</td>
-                <td>{{ item.SellingPrice }}</td>
+                <td>{{ if item.StockType == 0 }}Limited{{ else }}Unlimited{{ end }}</td>
+                <td>{{ item.MinimumStock }} / {{ item.Stock }}</td>
+                <td>{{ item.PurchasePrice }} / {{ item.SellingPrice }}</td>
+                <td>{{ item.Weight }} gram</td>
+                <td>{{ item.DiscountValue }}{{ if item.DiscountType == 0 }} %{{ end }}</td>
                 <td><a href="/product/{{ item.ID }}/edit"><i class="fa-classic fa-solid fa-edit"></i> Edit</a></td>
             </tr>
             {{ end }}

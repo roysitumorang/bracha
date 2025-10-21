@@ -12,12 +12,19 @@
     <input type="text" name="name" value="{{ product.Name }}" class="form-control" id="name" placeholder="name" autocomplete="off" />
 </div>
 <div class="col-12">
-    <label for="slug" class="form-label">Slug <span class="text-body-secondary">(Optional)</span></label>
-    <input type="test" name="slug" value="{{ product.Slug }}" class="form-control" id="slug" placeholder="slug" autocomplete="off" />
-</div>
-<div class="col-12">
     <label for="uom" class="form-label">UOM</label>
     <input type="test" name="uom" value="{{ product.UOM }}" class="form-control" id="uom" placeholder="UOM" autocomplete="off" />
+</div>
+<div class="col-12">
+    <label for="stock_type" class="form-label">Stock Type</label>
+    <select name="stock_type" class="form-select" id="stock_type">
+        <option value="0"{{ if product.StockType == 0 }} selected{{ end }}>Limited</option>
+        <option value="1"{{ if product.StockType == 1 }} selected{{ end }}>Unlimited</option>
+    </select>
+</div>
+<div class="col-12">
+    <label for="minimum_stock" class="form-label">Minimum Stock</label>
+    <input type="number" name="minimum_stock" value="{{ product.MinimumStock }}" class="form-control" id="minimum_stock" placeholder="minimum stock" autocomplete="off" />
 </div>
 <div class="col-12">
     <label for="stock" class="form-label">Stock</label>
@@ -30,6 +37,25 @@
 <div class="col-12">
     <label for="selling_price" class="form-label">Selling Price</label>
     <input type="number" name="selling_price" value="{{ product.SellingPrice }}" class="form-control" id="selling_price" placeholder="selling price" autocomplete="off" />
+</div>
+<div class="col-12">
+    <label for="weight" class="form-label">Weight (gram)</label>
+    <input type="number" name="weight" value="{{ product.Weight }}" class="form-control" id="weight" placeholder="Weight" autocomplete="off" />
+</div>
+<div class="col-12">
+    <label for="discount_value" class="form-label">Discount Value</label>
+    <input type="number" name="discount_value" value="{{ product.DiscountValue }}" class="form-control" id="discount_value" placeholder="discount value" autocomplete="off" />
+</div>
+<div class="col-12">
+    <label for="discount_type" class="form-label">Discount Type</label>
+    <select name="discount_type" class="form-select" id="discount_type">
+        <option value="0"{{ if product.DiscountType == 0 }} selected{{ end }}>Percent</option>
+        <option value="1"{{ if product.DiscountType == 1 }} selected{{ end }}>Amount</option>
+    </select>
+</div>
+<div class="col-12">
+    <label for="rack_position" class="form-label">Rack Position</label>
+    <input type="test" name="rack_position" value="{{ product.RackPosition }}" class="form-control" id="rack_position" placeholder="rack position" autocomplete="off" />
 </div>
 <button type="submit" class="btn btn-primary btn-lg">Submit</button>
 <button type="reset" class="btn btn-secondary btn-lg">Reset</button>

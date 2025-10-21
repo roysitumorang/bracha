@@ -140,16 +140,21 @@ type (
 	}
 
 	Product struct {
-		RowNo         uint64  `json:"row_no,omitempty"`
+		RowNo         uint64  `json:"row_no,omitempty" form:"-"`
 		ID            string  `json:"id" form:"id"`
 		CategoryID    *string `json:"category_id" form:"category_id"`
-		Code          string  `json:"code" form:"code"`
 		Name          string  `json:"name" form:"name"`
-		Slug          string  `json:"slug" form:"slug"`
+		Code          string  `json:"code" form:"code"`
 		UOM           string  `json:"uom" form:"uom"`
+		StockType     int     `json:"stock_type" form:"stock_type"`
+		MinimumStock  int64   `json:"minimum_stock" form:"minimum_stock"`
 		Stock         int64   `json:"stock" form:"stock"`
 		PurchasePrice int64   `json:"purchase_price" form:"purchase_price"`
 		SellingPrice  int64   `json:"selling_price" form:"selling_price"`
+		Weight        int64   `json:"weight" form:"weight"`
+		DiscountType  int     `json:"discount_type" form:"discount_type"`
+		DiscountValue int64   `json:"discount_value" form:"discount_value"`
+		RackPosition  string  `json:"rack_position" form:"rack_position"`
 	}
 
 	ProductsPagination struct {
