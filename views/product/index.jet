@@ -18,8 +18,8 @@
             </select>
         </div>
         <div class="col-md-4">
-            <button class="btn btn-primary btn-lg" type="submit">Search</button>
-            <button class="btn btn-secondary btn-lg" type="reset">Reset</button>
+            <button class="btn btn-primary btn-md" type="submit"><i class="fa-classic fa-solid fa-search"></i> Search</button>
+            <button class="btn btn-secondary btn-md" type="reset"><i class="fa-classic fa-solid fa-reset"></i> Reset</button>
         </div>
     </div>
 </form>
@@ -51,13 +51,13 @@
                 <td>{{ item.Stock }}</td>
                 <td>{{ item.PurchasePrice }}</td>
                 <td>{{ item.SellingPrice }}</td>
-                <td><a href="/product/{{ item.ID }}/edit">Edit</a></td>
+                <td><a href="/product/{{ item.ID }}/edit"><i class="fa-classic fa-solid fa-edit"></i> Edit</a></td>
             </tr>
             {{ end }}
         </tbody>
     </table>
 </div>
-<p><a href="/product/new">Create</a></p>
+<p><a href="/product/new"><button type="button" class="btn btn-primary btn-md"><i class="fa-classic fa-solid fa-plus"></i> Create</button></a></p>
 {{ if response.Data.Pagination.Info.Pages > 0 }}
     <ul class="pagination">
         <li class="page-item"><a class="page-link" href="{{ response.Data.Pagination.Links.First }}">First</a></li>

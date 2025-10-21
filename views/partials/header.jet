@@ -24,16 +24,19 @@
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav me-auto mb-2 mb-md-0">
                 <li class="nav-item">
-                    <a class="nav-link" href="/product_category">Product Category</a>
+                    <a class="nav-link" href="/"><i class="fa-classic fa-solid fa-home"></i> Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/product">Product</a>
+                    <a class="nav-link" href="/account/me/about"><i class="fa-classic fa-solid fa-user"></i> Welcome {{ currentUser.Email }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/account/me/about">My Profile</a>
+                    <a class="nav-link" href="/product_category"><i class="fa-classic fa-solid fa-list"></i> Product Category</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/account/logout">Logout</a>
+                    <a class="nav-link" href="/product"><i class="fa-classic fa-solid fa-list-check"></i> Product</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/account/logout"><i class="fa-classic fa-solid fa-right-from-bracket"></i> Logout</a>
                 </li>
             </ul>
         </div>
