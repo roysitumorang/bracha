@@ -3,6 +3,7 @@ package presenter
 import (
 	"errors"
 	"net/url"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
@@ -66,11 +67,13 @@ func (q *productHTTPHandler) index(c *fiber.Ctx) error {
 	if response == nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
+	limit, _ := strconv.Atoi(c.Query("limit"))
 	return c.Render("product/index", fiber.Map{
 		"is_authenticated": true,
 		"currentUser":      currentUser,
 		"message":          "",
 		"q":                c.Query("q"),
+		"limit":            limit,
 		"response":         response,
 	})
 }

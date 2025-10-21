@@ -94,6 +94,7 @@ type (
 			Previous string `json:"previous"`
 			Current  string `json:"current"`
 			Next     string `json:"next"`
+			Last     string `json:"last"`
 		} `json:"links"`
 		Info struct {
 			Limit int64 `json:"limit"`
@@ -367,6 +368,7 @@ func (q *ServiceSadia) FindProducts(ctx context.Context, jwt string, originalURL
 	response.Data.Pagination.Links.Current = strings.ReplaceAll(response.Data.Pagination.Links.Current, targetBaseURL, sourceBaseURL)
 	response.Data.Pagination.Links.Previous = strings.ReplaceAll(response.Data.Pagination.Links.Previous, targetBaseURL, sourceBaseURL)
 	response.Data.Pagination.Links.Next = strings.ReplaceAll(response.Data.Pagination.Links.Next, targetBaseURL, sourceBaseURL)
+	response.Data.Pagination.Links.Last = strings.ReplaceAll(response.Data.Pagination.Links.Last, targetBaseURL, sourceBaseURL)
 	return &response, nil
 }
 
